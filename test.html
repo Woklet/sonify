@@ -18,6 +18,7 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <script type="text/babel" src="extractor.jsx"></script>
+  <script type="text/babel" src="mapper.jsx"></script>
 
   <script type="text/babel">
     const log = document.getElementById("log");
@@ -63,6 +64,47 @@
       assert("extracts gridColumns", desc.elements.some(e => e.gridColumns > 0));
       assert("palette has entries", desc.colorPalette.length > 0);
       assert("deterministic", JSON.stringify(desc) === JSON.stringify(await extractDesignDescriptor(html)));
+
+      // --- Mapper tests ---
+      log.innerHTML += "\n== Mapper ==\n";
+
+      // Test color palette → mode selection
+      assert("few colors → pentatonic (5 notes)",
+        paletteToMode([{hex:"#fff",count:10},{hex:"#333",count:5}]).length === 5);
+
+      assert("many colors → chromatic (12 notes)",
+        paletteToMode(Array.from({length:15}, (_,i) => ({hex:`#${i}`,count:1}))).length === 12);
+
+      // Test whitespace → rest duration
+      assert("high whitespace → long rest",
+        whitespaceToRest(2.0) > whitespaceToRest(0.1));
+
+      assert("zero whitespace → no rest",
+        whitespaceToRest(0) === null);
+
+      // Test hierarchy → pitch
+      assert("h1 higher pitch than p",
+        hierarchyToPitch({isHeading:true,headingLevel:1,fontSize:32,visualWeight:4}, 7)
+        > hierarchyToPitch({isHeading:false,headingLevel:null,fontSize:16,visualWeight:1}, 7));
+
+      // Test grid → meter
+      assert("2-col grid → duple meter",
+        gridToMeter(2)[0] === 4);
+
+      assert("3-col grid → triple meter",
+        gridToMeter(3)[0] === 3);
+
+      // Test full mapper
+      const musicalDesc = mapToMusical(desc);
+      assert("musical desc has key", typeof musicalDesc.key === "number");
+      assert("musical desc has mode array", Array.isArray(musicalDesc.mode));
+      assert("musical desc has tempo", typeof musicalDesc.tempo === "number");
+      assert("musical desc has notes", Array.isArray(musicalDesc.notes));
+      assert("notes have pitch", musicalDesc.notes.every(n => typeof n.midi === "number"));
+      assert("notes have duration", musicalDesc.notes.every(n => typeof n.duration === "string"));
+      assert("notes have velocity", musicalDesc.notes.every(n => typeof n.velocity === "number"));
+      assert("some notes are rests", musicalDesc.notes.some(n => n.rest));
+      assert("deterministic", JSON.stringify(musicalDesc) === JSON.stringify(mapToMusical(desc)));
 
       summary();
     }
