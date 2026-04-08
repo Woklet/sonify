@@ -19,6 +19,7 @@
 
   <script type="text/babel" src="extractor.jsx"></script>
   <script type="text/babel" src="mapper.jsx"></script>
+  <script type="text/babel" src="realizer.jsx"></script>
 
   <script type="text/babel">
     const log = document.getElementById("log");
@@ -105,6 +106,18 @@
       assert("notes have velocity", musicalDesc.notes.every(n => typeof n.velocity === "number"));
       assert("some notes are rests", musicalDesc.notes.some(n => n.rest));
       assert("deterministic", JSON.stringify(musicalDesc) === JSON.stringify(mapToMusical(desc)));
+
+      // --- Realizer tests ---
+      log.innerHTML += "\n== Realizer ==\n";
+
+      assert("createSonarPlayer returns object", typeof createSonarPlayer === "function");
+
+      const player = createSonarPlayer(musicalDesc);
+      assert("player has play method", typeof player.play === "function");
+      assert("player has stop method", typeof player.stop === "function");
+      assert("player has onStep callback setter", typeof player.onStep === "function");
+      assert("player has noteCount", typeof player.noteCount === "number");
+      assert("noteCount matches non-rest notes", player.noteCount === musicalDesc.notes.filter(n => !n.rest).length);
 
       summary();
     }
