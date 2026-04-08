@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>DOM Sonar Tests</title>
+  <style>
+    body { background: #0d0f12; color: #d4d0c8; font-family: monospace; padding: 24px; }
+    .pass { color: #5b8a72; }
+    .fail { color: #b04a5a; }
+    #log { white-space: pre-wrap; line-height: 1.8; }
+  </style>
+</head>
+<body>
+  <h1>DOM Sonar Tests</h1>
+  <div id="log"></div>
+
+  <script src="https://unpkg.com/tone@14"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel" src="extractor.jsx"></script>
+
+  <script type="text/babel">
+    const log = document.getElementById("log");
+    let passed = 0, failed = 0;
+
+    function assert(name, condition, detail) {
+      if (condition) {
+        log.innerHTML += `<span class="pass">PASS</span> ${name}\n`;
+        passed++;
+      } else {
+        log.innerHTML += `<span class="fail">FAIL</span> ${name}${detail ? " — " + detail : ""}\n`;
+        failed++;
+      }
+    }
+
+    function summary() {
+      log.innerHTML += `\n${passed} passed, ${failed} failed\n`;
+    }
+
+    async function runTests() {
+      // --- Extractor tests ---
+      log.innerHTML += "\n== Extractor ==\n";
+
+      const html = `<html><body style="margin:20px;background:#fff;color:#333">
+        <header style="font-size:32px;margin-bottom:40px"><h1>Title</h1></header>
+        <main style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div style="padding:12px;background:#eee"><p>Card 1</p></div>
+          <div style="padding:12px;background:#eee"><p>Card 2</p></div>
+        </main>
+        <footer style="margin-top:40px"><p style="font-size:12px">Footer</p></footer>
+      </body></html>`;
+
+      const desc = await extractDesignDescriptor(html);
+
+      assert("returns object", typeof desc === "object");
+      assert("has elements array", Array.isArray(desc.elements));
+      assert("has colorPalette", Array.isArray(desc.colorPalette));
+      assert("has totalElements", typeof desc.totalElements === "number");
+      assert("elements have fontSize", desc.elements.some(e => e.fontSize > 0));
+      assert("elements have depth", desc.elements.every(e => typeof e.depth === "number"));
+      assert("elements have whitespaceRatio", desc.elements.some(e => e.whitespaceRatio > 0));
+      assert("detects grid", desc.elements.some(e => e.display === "grid"));
+      assert("extracts gridColumns", desc.elements.some(e => e.gridColumns > 0));
+      assert("palette has entries", desc.colorPalette.length > 0);
+      assert("deterministic", JSON.stringify(desc) === JSON.stringify(await extractDesignDescriptor(html)));
+
+      summary();
+    }
+
+    runTests();
+  </script>
+</body>
+</html>
