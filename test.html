@@ -119,6 +119,32 @@
       assert("player has noteCount", typeof player.noteCount === "number");
       assert("noteCount matches non-rest notes", player.noteCount === musicalDesc.notes.filter(n => !n.rest).length);
 
+      // --- Integration tests ---
+      log.innerHTML += "\n== Integration ==\n";
+
+      const cleanHtml = `<html><body style="margin:40px;font-family:serif;color:#333;background:#fff">
+  <h1 style="font-size:32px;margin-bottom:20px">Clean</h1>
+  <p style="line-height:1.6">Simple paragraph.</p>
+</body></html>`;
+
+      const messyHtml = `<html><body style="margin:0;background:#ff0;color:#f0f">
+  <div style="background:#0ff"><b style="color:red;font-size:40px">LOUD</b></div>
+  <div style="background:#f0f"><span style="color:#ff0">text</span><span style="color:#0f0">more</span><span style="color:#00f">stuff</span></div>
+  <input><input><input><button>GO</button><button>GO</button>
+</body></html>`;
+
+      const cleanDesc = await extractDesignDescriptor(cleanHtml);
+      const messyDesc = await extractDesignDescriptor(messyHtml);
+      const cleanMusic = mapToMusical(cleanDesc);
+      const messyMusic = mapToMusical(messyDesc);
+
+      assert("messy has more colors", messyDesc.colorPalette.length > cleanDesc.colorPalette.length);
+      assert("messy has more scale notes", messyMusic.mode.length >= cleanMusic.mode.length);
+      assert("messy has faster tempo", messyMusic.tempo >= cleanMusic.tempo);
+      assert("clean has more rests", cleanMusic.notes.filter(n=>n.rest).length >= messyMusic.notes.filter(n=>n.rest).length);
+      assert("both are deterministic (clean)", JSON.stringify(mapToMusical(cleanDesc)) === JSON.stringify(cleanMusic));
+      assert("both are deterministic (messy)", JSON.stringify(mapToMusical(messyDesc)) === JSON.stringify(messyMusic));
+
       summary();
     }
 
