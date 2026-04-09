@@ -1,0 +1,97 @@
+PROJECT: DOM Sonar
+
+WHAT IT IS:
+An experimental sonification instrument for discovering whether good visual design has inherent musical structure. It is NOT a music generator. It's a tool for developing intuition — sonify sites, compare them side by side, form hypotheses about design↔sound correlations, and test those hypotheses.
+
+It's fine if most sites sound ugly. Both positive and negative findings are interesting. The point is honest exploration, not pleasant output.
+
+WHAT IT ISN'T:
+This is Product 1. Product 2 (future, separate project called "DOM Composer") would be a co-optimization tool for designing sites that both look and sound good. We are not building Product 2 right now. Product 1 is the investigative lens that tells us whether Product 2 is even worth building.
+
+CONTEXT:
+I've built a small prototype ("DOM Sonifier") in React + Tone.js that walks an HTML DOM tree and plays notes: structural elements form chords, content elements play as melody, different element categories use different instruments. It works but it sounds like data sonification — the mapping is too arbitrary. Sibling index picks a scale degree, depth picks an octave. A well-designed page and a terrible page with the same tag structure sound identical.
+
+CORE PRINCIPLES:
+
+1. Honesty over pleasantness — use chromatic scale, not pentatonic. Let dissonance through. If a page has bad design, it should sound dissonant/uncomfortable. The tool must not lie by forcing everything into a pleasant scale.
+
+2. Deterministic fingerprint — same HTML + CSS must always produce exactly the same sound. No randomness, no generative variation. This is essential for comparison and reproducibility.
+
+3. Comparison-first — side-by-side comparison is where pattern discovery happens. The UI should make it trivial to A/B two sites and hear the difference.
+
+THREE-LAYER ARCHITECTURE:
+
+Layer 1: EXTRACT
+Pure DOM/CSS analysis. Walk the rendered page, use getComputedStyle and getBoundingClientRect to extract design properties into a "DesignDescriptor" JSON object. This layer knows nothing about music — it's a complete description of the visual design in structured data. Key properties to extract:
+- Whitespace (margins, padding, gaps between elements)
+- Grid/flex structure (column counts, regularity, alignment)
+- Visual hierarchy (font sizes, heading levels, element sizes)
+- Color palette (unique colors used, their relationships)
+- Element density (elements per viewport area)
+- Repetition patterns (repeated component structures)
+- Section boundaries (semantic landmarks)
+
+Layer 2: MAP
+Rule-based mapping from DesignDescriptor to musical parameters. No ML, no LLM — pure deterministic rules. This is where the thesis lives. Key mappings:
+- Whitespace → rests (generous margins = breathing room in the music)
+- Grid regularity → metric regularity (structured grid = steady meter; chaotic layout = irregular time)
+- Visual hierarchy → melodic contour (large headings = high/loud notes; supporting text = lower/quieter)
+- Color palette size → harmonic complexity (curated 3-5 color palette = simple tonal harmony; 20 random colors = chromatic chaos)
+- Color temperature → mode selection (warm palette = major-ish modes; cool palette = minor-ish modes)
+- Element density → texture density (sparse design = sparse arrangement; dense dashboard = fuller layering)
+- Repeated components → melodic motifs that recur
+- Section boundaries → phrase boundaries
+
+The output is a "MusicalDescriptor" — key, tempo, density, phrase boundaries, contour shape, rhythmic pattern, scale/mode, dynamics curve. Still abstract — no specific notes yet.
+
+Layer 3: REALIZE
+Constrained generative engine that produces actual notes and phrases. Uses Tone.js (Pattern, Sequence, Part) plus custom voice leading. Takes the MusicalDescriptor and the DOM traversal order, produces concrete audio. No templates — the notes emerge from the constraints set by Layer 2.
+
+DESIGN PROPERTIES → MUSICAL PARAMETERS (detailed mappings):
+
+RHYTHM AND METER
+- CSS grid/flex column count → time signature or rhythmic subdivision. A 3-column grid suggests ternary feel. A 4-column grid suggests 4/4.
+- Repeated components (card grids, list items, table rows) → motifs. Identical sibling structures produce the same melodic fragment, transposed or varied.
+- Regularity of spacing → swing/straightness. Perfectly even spacing = straight rhythm. Variable spacing = more rubato.
+
+MELODY AND CONTOUR
+- Font size / heading level → pitch register. Larger = higher or more prominent.
+- Reading flow direction → melodic direction.
+- Visual weight → dynamics (forte vs piano).
+
+RESTS AND PHRASING
+- Margins and padding → rest duration. More whitespace = longer rests.
+- Section boundaries (header/main/footer, semantic HTML) → phrase endings.
+- Line breaks in text flow → micro-rests.
+
+HARMONY AND KEY
+- Color palette → available pitch classes. Fewer colors = fewer notes in the scale. Monochromatic = modal. Rainbow = chromatic.
+- Color relationships → intervallic relationships. Complementary colors = tritone tension. Analogous colors = close intervals.
+- Color consistency across the page → harmonic stability. Consistent = stays in key. Inconsistent = modulates unpredictably.
+
+TEXTURE AND DYNAMICS
+- Element density per region → number of simultaneous voices.
+- Background vs foreground (z-index, opacity, size) → accompaniment vs melody prominence.
+- Contrast ratio → dynamic range.
+
+STRUCTURE
+- Page sections → musical sections (intro/verse/chorus/outro analogy).
+- Symmetry → call-and-response phrasing.
+- Navigation/repeated landmarks → recurring themes.
+
+WHAT I WANT SPECCED OUT:
+
+1. The complete DesignDescriptor schema — every property we extract, how we extract it, what it represents.
+
+2. The complete mapping ruleset — every DesignDescriptor property → MusicalDescriptor property, with the specific formula/rule and rationale for why the mapping is natural.
+
+3. The Realize engine design — how MusicalDescriptor + DOM traversal order → actual Tone.js output. How voice leading works, how phrases are constructed, how multiple layers (melody/chord/rhythm) interact.
+
+4. The comparison UI — how side-by-side works. How you load two sites, hear them, and understand what differs.
+
+5. Technical constraints — this runs in the browser, works with any website (via URL input or pasted HTML), uses Tone.js for audio, React for UI. No backend required. No build tools beyond what's needed for JSX.
+
+6. Development roadmap — what to build first. The MVP should be the smallest thing that lets you sonify a real site and start forming hypotheses. What comes after that.
+
+IMPORTANT FRAMING:
+This is an experiment. We are testing a hypothesis, not building a product. The measure of success is not "does it sound good" but "does it reveal something true about the relationship between visual design and sonic structure." If we discover that the relationship is weak or nonexistent, that's a valid and interesting finding.
