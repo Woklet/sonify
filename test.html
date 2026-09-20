@@ -78,10 +78,13 @@
 
       // Test whitespace → rest duration
       assert("high whitespace → long rest",
-        whitespaceToRest(2.0) > whitespaceToRest(0.1));
+        whitespaceToRest(2.0) > whitespaceToRest(0.5));
 
       assert("zero whitespace → no rest",
         whitespaceToRest(0) === null);
+
+      assert("low whitespace → no rest",
+        whitespaceToRest(0.2) === null);
 
       // Test hierarchy → pitch
       assert("h1 higher pitch than p",

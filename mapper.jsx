@@ -58,11 +58,10 @@ function parseColor(str) {
 // Whitespace ratio → rest before this note
 // Higher whitespace = longer rest. 0 = no rest.
 function whitespaceToRest(ratio) {
-  if (ratio < 0.1) return null;           // negligible spacing
-  if (ratio < 0.5) return "32n";          // tiny breath
-  if (ratio < 1.0) return "16n";          // short rest
-  if (ratio < 2.0) return "8n";           // moderate rest
-  return "4n";                             // generous whitespace = quarter rest
+  if (ratio < 0.3) return null;           // most elements — no rest
+  if (ratio < 1.0) return "32n";          // moderate spacing — tiny breath
+  if (ratio < 2.0) return "16n";          // generous spacing — short rest
+  return "8n";                             // very generous whitespace
 }
 
 // Visual hierarchy → pitch class index within mode
@@ -166,7 +165,7 @@ function mapToMusical(designDescriptor) {
     // Duration: headings and structural parents get longer notes
     let duration = "16n";
     if (el.isHeading) duration = "8n";
-    if (isChord) duration = "2n";
+    if (isChord) duration = "4n";
     if (el.repeatedChildStructure) duration = "4n";
 
     // Velocity from visual weight

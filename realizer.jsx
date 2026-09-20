@@ -15,13 +15,21 @@ function createSonarPlayer(musicalDesc) {
   const chordGroups = []; // { atMelodyIndex, midis[] }
   let pendingChordMidis = [];
 
+  let lastWasRest = null; // hold rests until we know what follows
   for (const note of md.notes) {
     if (note.rest) {
-      // Rests go into melody track as timing gaps
-      melodyNotes.push(note);
+      lastWasRest = note;
+      continue;
     } else if (note.role === "chord") {
+      // Discard rests before chords — chords play over melody, don't add silence
+      lastWasRest = null;
       pendingChordMidis.push(note.midi);
     } else {
+      // Flush held rest only before melody notes
+      if (lastWasRest) {
+        melodyNotes.push(lastWasRest);
+        lastWasRest = null;
+      }
       // Flush pending chords at this melody position
       if (pendingChordMidis.length > 0) {
         const melodyIndex = melodyNotes.filter(n => !n.rest).length;
